@@ -17,3 +17,10 @@ export interface IPostgresAddress {
   occupied: number;
   position: [number, number];
 }
+
+export interface IPostgresVehicle {
+  id: number;
+  name: string;
+  license_plate: string;
+  driver_id: number;
+}
