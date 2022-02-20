@@ -1,9 +1,11 @@
 //NPM packages imports
 import express from 'express';
+import insertVehicleValidator from '../../utils/validators/driver/forms/insert-vehicle.form.validator';
 
 // Controllers imports
 import * as driverController from '../../controllers/driver/driver.controller';
 import * as vehicleController from '../../controllers/vehicle/vehicle.controller';
+import * as stripeController from '../../controllers/stripe/stripe.controller';
 
 // Validators imports
 import registerValidator from '../../utils/validators/driver/forms/register.form.validator';
@@ -20,6 +22,17 @@ router.get('/:driverId/vehicles', vehicleController.getVehicles);
 /* -------------------------------------------------------------------------- */
 /*                                 POST ROUTES                                */
 /* -------------------------------------------------------------------------- */
+// Create stripe payment intent
+router.post(
+  '/payment/create-payment-intent',
+  stripeController.createPaymentIntent
+);
+// Insert a new vehicle in to the database
+router.post(
+  '/:driverId/insert/vehicle',
+  insertVehicleValidator,
+  vehicleController.insertVehicle
+);
 router.post('/register', registerValidator, driverController.registerDriver);
 
 export { router as driverMainRouter };

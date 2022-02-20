@@ -25,8 +25,34 @@ export default class Vehicle {
             licensePlate: vehicle.license_plate,
           });
         });
+
+        return data;
       } else {
         return data;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  static async insertOne(
+    driverId: number,
+    vehicleName: string,
+    licensePlate: string
+  ): Promise<boolean> {
+    try {
+      const result = await db.query(
+        `
+      INSERT INTO vehicles(name, license_plate, driver_id) 
+      VALUES ($1, $2, $3)
+      `,
+        [vehicleName, licensePlate, driverId]
+      );
+
+      if (result.rowCount > 0) {
+        return true;
+      } else {
+        return false;
       }
     } catch (error) {
       console.log(error);
