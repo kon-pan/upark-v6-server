@@ -5,6 +5,7 @@ import insertVehicleValidator from '../../utils/validators/driver/forms/insert-v
 // Controllers imports
 import * as driverController from '../../controllers/driver/driver.controller';
 import * as vehicleController from '../../controllers/vehicle/vehicle.controller';
+import * as cardController from '../../controllers/card/card.controller';
 import * as stripeController from '../../controllers/stripe/stripe.controller';
 
 // Validators imports
@@ -22,6 +23,8 @@ router.get('/:driverId/vehicles', vehicleController.getVehicles);
 /* -------------------------------------------------------------------------- */
 /*                                 POST ROUTES                                */
 /* -------------------------------------------------------------------------- */
+// Insert a new parking card in to the database
+router.post('/card/insert', cardController.insertCard);
 // Create stripe payment intent
 router.post(
   '/payment/create-payment-intent',

@@ -35,3 +35,49 @@ VALUES
 ('Χατζοπούλου 2-6,5-13', 16, 0, ARRAY [38.89923681669934, 22.43441734896569]);
 
 /* -------------------------------------------------------------------------- */
+
+CREATE TABLE active_cards (
+  id SERIAL PRIMARY KEY,
+  license_plate VARCHAR(10) NOT NULL,
+  vehicle_name VARCHAR(50) NOT NULL,
+  duration NUMERIC NOT NULL,
+  cost NUMERIC NOT NULL,
+  starts_at TIMESTAMPTZ NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  driver_id INT NOT NULL,
+  address_id INT NOT NULL,
+  CONSTRAINT fk_driver
+    FOREIGN KEY(driver_id) 
+      REFERENCES drivers(id)
+      ON DELETE CASCADE,
+  CONSTRAINT fk_address
+    FOREIGN KEY(address_id) 
+      REFERENCES addresses(id)
+      ON DELETE CASCADE
+);
+
+CREATE TABLE inactive_cards (
+  id SERIAL PRIMARY KEY,
+  license_plate VARCHAR(10) NOT NULL,
+  vehicle_name VARCHAR(50) NOT NULL,
+  duration NUMERIC NOT NULL,
+  cost NUMERIC NOT NULL,
+  starts_at TIMESTAMPTZ NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  driver_id INT NOT NULL,
+  address_id INT NOT NULL,
+  CONSTRAINT fk_driver
+    FOREIGN KEY(driver_id) 
+      REFERENCES drivers(id),
+  CONSTRAINT fk_address
+    FOREIGN KEY(address_id) 
+      REFERENCES addresses(id)
+);
+
+/* -------------------------------------------------------------------------- */
+
+WITH inactive 
+AS (DELETE FROM active_cards WHERE expires_at < NOW() RETURNING *)
+    INSERT INTO 
+		inactive_cards(license_plate, vehicle_name, duration, cost, starts_at, expires_at, driver_id, address_id) 
+	SELECT license_plate, vehicle_name, duration, cost, starts_at, expires_at, driver_id, address_id FROM inactive;
