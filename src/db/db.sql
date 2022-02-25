@@ -56,6 +56,10 @@ CREATE TABLE active_cards (
       ON DELETE CASCADE
 );
 
+INSERT INTO active_cards
+SELECT * FROM json_populate_recordset(NULL::active_cards,
+  '');
+  
 CREATE TABLE inactive_cards (
   id SERIAL PRIMARY KEY,
   license_plate VARCHAR(10) NOT NULL,
@@ -76,8 +80,87 @@ CREATE TABLE inactive_cards (
 
 /* -------------------------------------------------------------------------- */
 
-WITH inactive 
-AS (DELETE FROM active_cards WHERE expires_at < NOW() RETURNING *)
-    INSERT INTO 
-		inactive_cards(license_plate, vehicle_name, duration, cost, starts_at, expires_at, driver_id, address_id) 
-	SELECT license_plate, vehicle_name, duration, cost, starts_at, expires_at, driver_id, address_id FROM inactive;
+WITH new_card AS (
+  INSERT INTO active_cards(
+    license_plate, vehicle_name, duration, 
+    cost, starts_at, expires_at, driver_id, 
+    address_id
+  ) 
+  VALUES 
+    ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
+) 
+UPDATE 
+  addresses 
+SET 
+  occupied = occupied + 1 
+WHERE 
+  addresses.id = (SELECT address_id FROM new_card)
+
+/* -------------------------------------------------------------------------- */
+
+WITH inactive AS (
+  DELETE FROM 
+    active_cards 
+  WHERE 
+    expires_at < NOW() RETURNING *
+) INSERT INTO inactive_cards(
+  license_plate, vehicle_name, duration, 
+  cost, starts_at, expires_at, driver_id, 
+  address_id
+) 
+SELECT 
+  license_plate, 
+  vehicle_name, 
+  duration, 
+  cost, 
+  starts_at, 
+  expires_at, 
+  driver_id, 
+  address_id 
+FROM 
+  inactive;
+
+/* -------------------------------------------------------------------------- */
+
+UPDATE 
+  addresses 
+SET 
+  occupied = t.occupied 
+FROM 
+  (
+    SELECT 
+      addresses.id, 
+      COALESCE(tmp.counter, 0) as occupied 
+    FROM 
+      addresses 
+      LEFT JOIN (
+        SELECT 
+          address_id, 
+          count(*) as counter 
+        FROM 
+          active_cards
+        GROUP BY 
+          address_id
+      ) tmp ON addresses.id = tmp.address_id
+  ) t 
+WHERE 
+  addresses.id = t.id
+
+/* -------------------------------------------------------------------------- */
+
+SELECT 
+  active_cards.id, 
+  addresses.name, 
+  active_cards.license_plate, 
+  active_cards.vehicle_name, 
+  active_cards.starts_at, 
+  active_cards.expires_at 
+FROM 
+  active_cards 
+  JOIN addresses ON active_cards.address_id = addresses.id 
+WHERE 
+  driver_id = $1 
+ORDER BY 
+  id DESC
+
+

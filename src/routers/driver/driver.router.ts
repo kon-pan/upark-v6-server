@@ -17,6 +17,8 @@ const router = express.Router();
 /* -------------------------------------------------------------------------- */
 /*                                 GET ROUTES                                 */
 /* -------------------------------------------------------------------------- */
+// Fetch active card/s (if any) of a specific driver
+router.get('/:driverId/select/active-cards', cardController.selectActiveCards);
 // Fetch saved vehicles (if any) of a specific driver
 router.get('/:driverId/vehicles', vehicleController.getVehicles);
 

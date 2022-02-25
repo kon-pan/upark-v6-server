@@ -13,4 +13,11 @@ export default class Address {
       console.log(error);
     }
   }
+
+  /**
+   * Check if provided adress has avaible parking spots
+   * @param {number} addressId
+   * @returns {Promise<any>}
+   */
+  static async hasAvailable(addressId: number): Promise<any> {}
 }

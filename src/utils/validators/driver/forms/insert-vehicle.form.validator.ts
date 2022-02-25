@@ -34,6 +34,11 @@ const insertVehicleValidator = [
     .isEmpty()
     .withMessage('Εισάγετε τιμή σε αυτό το πεδίo.')
     .bail()
+    .isLength({ min: 4, max: 10 })
+    .withMessage(
+      'Ο αριθμός κυκλοφορίας του οχήματος πρέπει να αποτελείται απο 4 εώς 10 χαρακτήρες.'
+    )
+    .bail()
     .customSanitizer((value: string) => {
       return value.toUpperCase();
     }),

@@ -7,6 +7,7 @@ import express from 'express';
 import session from 'express-session';
 import passport from 'passport';
 import { Server } from 'socket.io';
+import cron from 'node-cron';
 
 // Controllers imports
 import * as addressController from './controllers/address/address.controller';
@@ -25,6 +26,68 @@ import localAuth from './utils/passport/passport.local';
 import { IPostgresDriver } from './interfaces/interface.db';
 import Driver from './models/Driver';
 
+/* -------------------------------------------------------------------------- */
+/*                                 CRON TASKS                                 */
+/* -------------------------------------------------------------------------- */
+cron.schedule('*/10 * * * * *', async () => {
+  try {
+    console.time('db-cron');
+    // Check for active-inactive parking cards
+    await db.query(`
+    WITH inactive AS (
+      DELETE FROM 
+        active_cards 
+      WHERE 
+        expires_at < NOW() RETURNING *
+    ) INSERT INTO inactive_cards(
+      license_plate, vehicle_name, duration, 
+      cost, starts_at, expires_at, driver_id, 
+      address_id
+    ) 
+    SELECT 
+      license_plate, 
+      vehicle_name, 
+      duration, 
+      cost, 
+      starts_at, 
+      expires_at, 
+      driver_id, 
+      address_id 
+    FROM 
+      inactive;
+    `);
+
+    // Update address occupancy
+    await db.query(`
+    UPDATE 
+      addresses 
+    SET 
+      occupied = t.occupied 
+    FROM 
+      (
+        SELECT 
+          addresses.id, 
+          COALESCE(tmp.counter, 0) as occupied 
+        FROM 
+          addresses 
+          LEFT JOIN (
+            SELECT 
+              address_id, 
+              count(*) as counter 
+            FROM 
+              active_cards
+            GROUP BY 
+              address_id
+          ) tmp ON addresses.id = tmp.address_id
+      ) t 
+    WHERE 
+      addresses.id = t.id
+    `);
+    console.timeEnd('db-cron');
+  } catch (error) {
+    console.log(error);
+  }
+});
 /* -------------------------------------------------------------------------- */
 
 const app = express();

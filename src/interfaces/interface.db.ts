@@ -24,3 +24,16 @@ export interface IPostgresVehicle {
   license_plate: string;
   driver_id: number;
 }
+
+export interface IPostgresActiveCard {
+  id: number;
+  license_plate: string;
+  vehicle_name: string;
+  duration: number;
+  cost: number;
+  starts_at: string;
+  expires_at: string;
+  driver_id: number;
+  address_id: number;
+  address_name: string;
+}

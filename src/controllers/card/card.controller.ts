@@ -12,3 +12,9 @@ export const insertCard = async (req: Request, res: Response) => {
     res.send({ success: false });
   }
 };
+
+export const selectActiveCards = async (req: Request, res: Response) => {
+  const driverId = req.params.driverId;
+  const result = await Card.select('active-user', parseInt(driverId));
+  res.send({ activeCards: result });
+};
