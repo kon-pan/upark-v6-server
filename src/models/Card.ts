@@ -91,8 +91,6 @@ export default class Card {
             [driverId]
           );
 
-          console.log(response);
-
           if (response.rowCount > 0) {
             let activeCards: ICard[] = [];
             (response.rows as IPostgresActiveCard[]).forEach((card) => {
@@ -122,6 +120,66 @@ export default class Card {
 
       default:
         break;
+    }
+  }
+
+  /**
+   * Cancel an active card. Remove a card from active_cards table and move it
+   * to inactive_cards. Update driver's accumulated time.
+   */
+  static async cancel(
+    driverId: number,
+    cardId: number,
+    expiresAt: string
+  ): Promise<void> {
+    // Calculate remaing time
+    const remaining = DateTime.fromISO(expiresAt).diffNow([
+      'minutes',
+      'seconds',
+    ]);
+
+    try {
+      const response = await db.query(
+        `
+      WITH cancelled AS (
+        DELETE FROM
+          active_cards
+        WHERE
+          id = $1 RETURNING *
+      ),
+      insert_cancelled AS (
+        INSERT INTO inactive_cards(
+          license_plate, vehicle_name, duration,
+          cost, starts_at, expires_at, expired,
+          cancelled, driver_id, address_id
+        )
+        SELECT
+          license_plate,
+          vehicle_name,
+          duration,
+          cost,
+          starts_at,
+          expires_at,
+          false as expired,
+          true as cancelled,
+          driver_id,
+          address_id
+        FROM
+          cancelled RETURNING *
+      )
+      UPDATE
+        drivers
+      SET
+        accumulated_time = accumulated_time + $2
+      WHERE
+        id = $3
+      `,
+        [cardId, remaining.minutes, driverId]
+      );
+
+      console.log(response);
+    } catch (error) {
+      console.log(error);
     }
   }
 }

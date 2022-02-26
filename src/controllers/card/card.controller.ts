@@ -18,3 +18,9 @@ export const selectActiveCards = async (req: Request, res: Response) => {
   const result = await Card.select('active-user', parseInt(driverId));
   res.send({ activeCards: result });
 };
+
+export const cancelCard = async (req: Request, res: Response) => {
+  const { driverId, cardId, expiresAt } = req.body;
+  const result = await Card.cancel(driverId, cardId, expiresAt);
+  res.send('Under development');
+};

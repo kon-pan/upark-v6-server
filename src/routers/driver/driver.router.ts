@@ -25,6 +25,8 @@ router.get('/:driverId/vehicles', vehicleController.getVehicles);
 /* -------------------------------------------------------------------------- */
 /*                                 POST ROUTES                                */
 /* -------------------------------------------------------------------------- */
+// Cancel a specific driver's card
+router.post('/card/cancel', cardController.cancelCard);
 // Insert a new parking card in to the database
 router.post('/card/insert', cardController.insertCard);
 // Create stripe payment intent

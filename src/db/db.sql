@@ -68,6 +68,8 @@ CREATE TABLE inactive_cards (
   cost NUMERIC NOT NULL,
   starts_at TIMESTAMPTZ NOT NULL,
   expires_at TIMESTAMPTZ NOT NULL,
+  expired BOOLEAN NOT NULL,
+  cancelled BOOLEAN NOT NULL,
   driver_id INT NOT NULL,
   address_id INT NOT NULL,
   CONSTRAINT fk_driver
@@ -162,5 +164,41 @@ WHERE
   driver_id = $1 
 ORDER BY 
   id DESC
+
+/* -------------------------------------------------------------------------- */
+
+WITH cancelled AS (
+  DELETE FROM 
+    active_cards 
+  WHERE 
+    id = 13 RETURNING *
+), 
+insert_cancelled AS (
+  INSERT INTO inactive_cards(
+    license_plate, vehicle_name, duration, 
+    cost, starts_at, expires_at, expired, 
+    cancelled, driver_id, address_id
+  ) 
+  SELECT 
+    license_plate, 
+    vehicle_name, 
+    duration, 
+    cost, 
+    starts_at, 
+    expires_at, 
+    false as expired, 
+    true as cancelled, 
+    driver_id, 
+    address_id 
+  FROM 
+    cancelled RETURNING *
+) 
+UPDATE 
+  drivers 
+SET 
+  accumulated_time = accumulated_time + 37 
+WHERE 
+  id = 1
+
 
 
