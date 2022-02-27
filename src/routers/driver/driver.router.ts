@@ -25,6 +25,8 @@ router.get('/:driverId/vehicles', vehicleController.getVehicles);
 /* -------------------------------------------------------------------------- */
 /*                                 POST ROUTES                                */
 /* -------------------------------------------------------------------------- */
+// Extend a carde duration
+router.post('/card/:cardId/extend', cardController.extendCard);
 // Cancel a specific driver's card
 router.post('/card/cancel', cardController.cancelCard);
 // Insert a new parking card in to the database

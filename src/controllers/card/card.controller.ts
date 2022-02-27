@@ -4,8 +4,19 @@ import { ICard } from 'src/interfaces/interface.main';
 import Card from '../../models/Card';
 
 export const insertCard = async (req: Request, res: Response) => {
-  const card = req.body.card as ICard;
-  const result = await Card.insert(card);
+  const {
+    card,
+    useAccumulatedTime,
+  }: { card: ICard; useAccumulatedTime: boolean } = req.body;
+  console.log(card);
+
+  let result: boolean;
+  if (useAccumulatedTime) {
+    result = await Card.insert(card, 'accumulated-time');
+  } else {
+    result = await Card.insert(card);
+  }
+
   if (result) {
     res.send({ success: true });
   } else {
@@ -22,5 +33,40 @@ export const selectActiveCards = async (req: Request, res: Response) => {
 export const cancelCard = async (req: Request, res: Response) => {
   const { driverId, cardId, expiresAt } = req.body;
   const result = await Card.cancel(driverId, cardId, expiresAt);
-  res.send('Under development');
+  res.send({ success: result });
+};
+
+export const extendCard = async (req: Request, res: Response) => {
+  const cardId = parseInt(req.params.cardId);
+
+  const {
+    expiresAt,
+    duration,
+    price,
+    useAccumulatedTime,
+  }: {
+    expiresAt: string;
+    duration: number;
+    price: number;
+    useAccumulatedTime: boolean;
+  } = req.body;
+
+  let result: boolean;
+  if (useAccumulatedTime) {
+    result = await Card.extend(
+      cardId,
+      expiresAt,
+      duration,
+      0,
+      'accumulated-time'
+    );
+  } else {
+    result = await Card.extend(cardId, expiresAt, duration, price);
+  }
+
+  if (result) {
+    res.send({ success: true });
+  } else {
+    res.send({ success: false });
+  }
 };

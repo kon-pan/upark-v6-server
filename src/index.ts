@@ -41,7 +41,7 @@ cron.schedule('*/10 * * * * *', async () => {
         expires_at < NOW() RETURNING *
     ) INSERT INTO inactive_cards(
       license_plate, vehicle_name, duration, 
-      cost, starts_at, expires_at, driver_id, 
+      cost, starts_at, expires_at, expired, cancelled, driver_id, 
       address_id
     ) 
     SELECT 
@@ -51,6 +51,8 @@ cron.schedule('*/10 * * * * *', async () => {
       cost, 
       starts_at, 
       expires_at, 
+      true as expired, 
+      false as cancelled, 
       driver_id, 
       address_id 
     FROM 

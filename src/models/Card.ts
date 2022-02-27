@@ -4,7 +4,10 @@ import db from '../db/db.config';
 import { IPostgresActiveCard } from 'src/interfaces/interface.db';
 
 export default class Card {
-  static async insert(card: ICard): Promise<boolean> {
+  static async insert(
+    card: ICard,
+    method?: 'accumulated-time'
+  ): Promise<boolean> {
     let nowUtc;
     let expireUtc;
 
@@ -19,9 +22,58 @@ export default class Card {
       expireUtc = nowUtc.plus({ minutes: card.duration });
     }
 
-    try {
-      const result = await db.query(
-        `
+    let sql: string;
+    let data;
+    if (method === 'accumulated-time') {
+      sql = `
+      WITH new_card AS (
+        INSERT INTO active_cards(
+          license_plate, vehicle_name, duration, 
+          cost, starts_at, expires_at, driver_id, 
+          address_id
+        ) 
+        VALUES 
+          ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
+      ), 
+      update_addresses AS (
+        UPDATE 
+          addresses 
+        SET 
+          occupied = occupied + 1 
+        WHERE 
+          addresses.id = (
+            SELECT 
+              address_id 
+            FROM 
+              new_card
+          )
+      ) 
+      UPDATE 
+        drivers 
+      SET 
+        accumulated_time = accumulated_time - (
+          SELECT 
+            duration 
+          FROM 
+            new_card
+        ) 
+      WHERE 
+        id = $9      
+      `;
+
+      data = [
+        card.vehicleLicensePlate,
+        card.vehicleName,
+        card.duration,
+        0,
+        nowUtc.toISO(),
+        expireUtc.toISO(),
+        card.driverId,
+        card.addressId,
+        card.driverId,
+      ];
+    } else {
+      sql = `
       WITH new_card AS (
         INSERT INTO active_cards(
           license_plate, vehicle_name, duration, 
@@ -37,18 +89,21 @@ export default class Card {
         occupied = occupied + 1 
       WHERE 
         addresses.id = (SELECT address_id FROM new_card)
-      `,
-        [
-          card.vehicleLicensePlate,
-          card.vehicleName,
-          card.duration,
-          card.cost,
-          nowUtc.toISO(),
-          expireUtc.toISO(),
-          card.driverId,
-          card.addressId,
-        ]
-      );
+      `;
+      data = [
+        card.vehicleLicensePlate,
+        card.vehicleName,
+        card.duration,
+        card.cost,
+        nowUtc.toISO(),
+        expireUtc.toISO(),
+        card.driverId,
+        card.addressId,
+      ];
+    }
+
+    try {
+      const result = await db.query(sql, data);
 
       if (result.rowCount > 0) {
         return true;
@@ -131,7 +186,7 @@ export default class Card {
     driverId: number,
     cardId: number,
     expiresAt: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     // Calculate remaing time
     const remaining = DateTime.fromISO(expiresAt).diffNow([
       'minutes',
@@ -139,7 +194,7 @@ export default class Card {
     ]);
 
     try {
-      const response = await db.query(
+      const result = await db.query(
         `
       WITH cancelled AS (
         DELETE FROM
@@ -177,7 +232,67 @@ export default class Card {
         [cardId, remaining.minutes, driverId]
       );
 
-      console.log(response);
+      if (result.rowCount > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  static async extend(
+    cardId: number,
+    expiresAt: string,
+    duration: number,
+    price: number,
+    method?: 'accumulated-time'
+  ): Promise<boolean> {
+    console.log(cardId, expiresAt, duration, price, method);
+
+    const dt = DateTime.fromISO(expiresAt).plus({ minutes: duration });
+
+    let sql: string;
+    let data;
+    if (method === 'accumulated-time') {
+      sql = `
+      WITH extended_card AS (
+        UPDATE 
+          active_cards 
+        SET 
+          expires_at = $1 
+        WHERE 
+          id = $2 RETURNING *
+      ) 
+      UPDATE 
+        drivers 
+      SET 
+        accumulated_time = accumulated_time - $3
+      WHERE id = (SELECT driver_id FROM extended_card)
+      `;
+      data = [dt.toUTC().toISO(), cardId, duration];
+    } else {
+      sql = `
+      UPDATE 
+        active_cards 
+      SET 
+        expires_at = $1, 
+        cost = cost + $2 
+      WHERE 
+        id = $3
+      `;
+      data = [dt.toUTC().toISO(), price, cardId];
+    }
+
+    try {
+      const result = await db.query(sql, data);
+
+      if (result.rowCount > 0) {
+        return true;
+      } else {
+        return false;
+      }
     } catch (error) {
       console.log(error);
     }
