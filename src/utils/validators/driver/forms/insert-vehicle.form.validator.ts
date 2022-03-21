@@ -3,6 +3,7 @@ import { check } from 'express-validator';
 import { isObjectEmpty } from '../../../utils';
 
 import Driver from '../../../../models/Driver';
+import Vehicle from 'src/models/Vehicle';
 
 const insertVehicleValidator = [
   check('vehicleName')
@@ -40,7 +41,7 @@ const insertVehicleValidator = [
     )
     .bail()
     .customSanitizer((value: string) => {
-      return value.toUpperCase();
+      return value.replace(' ', '').toUpperCase();
     }),
 ];
 

@@ -1,11 +1,14 @@
 import { DateTime } from 'luxon';
-import { ICard } from '../interfaces/interface.main';
 import db from '../db/db.config';
-import { IPostgresActiveCard } from 'src/interfaces/interface.db';
+import {
+  IPostgresActiveCard,
+  IPostgresInactiveCard,
+} from '../interfaces/interface.db';
+import { IActiveCard, IInactiveCard } from '../interfaces/interface.main';
 
 export default class Card {
   static async insert(
-    card: ICard,
+    card: IActiveCard,
     method?: 'accumulated-time'
   ): Promise<boolean> {
     let nowUtc;
@@ -116,9 +119,9 @@ export default class Card {
   }
 
   static async select(
-    value: 'active-user' | 'active-all',
+    value: 'active-user' | 'active-all' | 'inactive-user',
     driverId?: number
-  ): Promise<ICard[]> {
+  ): Promise<IActiveCard[] | IInactiveCard[]> {
     switch (value) {
       case 'active-user':
         try {
@@ -147,7 +150,7 @@ export default class Card {
           );
 
           if (response.rowCount > 0) {
-            let activeCards: ICard[] = [];
+            let activeCards: IActiveCard[] = [];
             (response.rows as IPostgresActiveCard[]).forEach((card) => {
               activeCards.push({
                 id: card.id,
@@ -166,7 +169,62 @@ export default class Card {
             return activeCards;
           }
 
-          return [] as ICard[];
+          return [] as IActiveCard[];
+        } catch (error) {
+          console.log(error);
+        }
+
+        break;
+
+      case 'inactive-user':
+        try {
+          const response = await db.query(
+            `
+            SELECT
+              inactive_cards.id, 
+              inactive_cards.driver_id, 
+              inactive_cards.address_id, 
+              addresses.name as address_name, 
+              inactive_cards.vehicle_name, 
+              inactive_cards.license_plate, 
+              inactive_cards.cost,
+              inactive_cards.duration,
+              inactive_cards.starts_at, 
+              inactive_cards.expired,
+              inactive_cards.cancelled
+            FROM 
+              inactive_cards 
+              JOIN addresses ON inactive_cards.address_id = addresses.id 
+            WHERE 
+              driver_id = $1 
+            ORDER BY 
+              id DESC
+            `,
+            [driverId]
+          );
+
+          if (response.rowCount > 0) {
+            let inactiveCards: IInactiveCard[] = [];
+            (response.rows as IPostgresInactiveCard[]).forEach((card) => {
+              inactiveCards.push({
+                id: card.id,
+                driverId: card.driver_id,
+                addressId: card.address_id,
+                addressName: card.address_name,
+                vehicleName: card.vehicle_name,
+                licensePlate: card.license_plate,
+                cost: card.cost,
+                duration: card.duration,
+                startsAt: card.starts_at,
+                cancelled: card.cancelled,
+                expired: card.expired,
+              });
+            });
+
+            return inactiveCards;
+          }
+
+          return [] as IInactiveCard[];
         } catch (error) {
           console.log(error);
         }
@@ -249,8 +307,6 @@ export default class Card {
     price: number,
     method?: 'accumulated-time'
   ): Promise<boolean> {
-    console.log(cardId, expiresAt, duration, price, method);
-
     const dt = DateTime.fromISO(expiresAt).plus({ minutes: duration });
 
     let sql: string;

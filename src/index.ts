@@ -162,7 +162,6 @@ passport.serializeUser(
     // | (IPostgresInspector & { role: string }),
     done: any
   ) => {
-    // console.log(user);
     done(null, { id: user.id, role: user.role });
   }
 );

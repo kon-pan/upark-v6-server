@@ -1,14 +1,13 @@
 // NPM packages imports
 import { Request, Response } from 'express';
-import { ICard } from 'src/interfaces/interface.main';
+import { IActiveCard } from '../../interfaces/interface.main';
 import Card from '../../models/Card';
 
 export const insertCard = async (req: Request, res: Response) => {
   const {
     card,
     useAccumulatedTime,
-  }: { card: ICard; useAccumulatedTime: boolean } = req.body;
-  console.log(card);
+  }: { card: IActiveCard; useAccumulatedTime: boolean } = req.body;
 
   let result: boolean;
   if (useAccumulatedTime) {
@@ -22,6 +21,12 @@ export const insertCard = async (req: Request, res: Response) => {
   } else {
     res.send({ success: false });
   }
+};
+
+export const selectInactiveCards = async (req: Request, res: Response) => {
+  const driverId = req.params.driverId;
+  const result = await Card.select('inactive-user', parseInt(driverId));
+  res.send({ inactiveCards: result });
 };
 
 export const selectActiveCards = async (req: Request, res: Response) => {

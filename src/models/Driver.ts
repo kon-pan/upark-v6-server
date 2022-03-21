@@ -90,4 +90,82 @@ export default class Driver {
       console.log(error);
     }
   }
+
+  static async updatePersonalInfo(
+    driverId: number,
+    firstName: string,
+    lastName: string
+  ) {
+    try {
+      const result = await db.query(
+        `
+      UPDATE 
+        drivers 
+      SET 
+        first_name = $1, 
+        last_name = $2, 
+        display_name = $3 
+      WHERE 
+        id = $4
+      `,
+        [firstName, lastName, `${firstName} ${lastName}`, driverId]
+      );
+
+      if (result.rowCount > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  static async updateContactInfo(driverId: number, email: string) {
+    try {
+      const result = await db.query(
+        `
+      UPDATE 
+        drivers 
+      SET 
+        email = $1
+      WHERE 
+        id = $2
+      `,
+        [email, driverId]
+      );
+
+      if (result.rowCount > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  static async updatePassword(driverId: number, password: string) {
+    try {
+      const result = await db.query(
+        `
+      UPDATE 
+        drivers 
+      SET 
+        password = $1
+      WHERE 
+        id = $2
+      `,
+        [password, driverId]
+      );
+
+      if (result.rowCount > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }

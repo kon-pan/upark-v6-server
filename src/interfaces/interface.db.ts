@@ -37,3 +37,17 @@ export interface IPostgresActiveCard {
   address_id: number;
   address_name: string;
 }
+
+export interface IPostgresInactiveCard {
+  id: number;
+  driver_id: number;
+  address_id: number;
+  address_name: string;
+  vehicle_name: string;
+  license_plate: string;
+  cost: number;
+  duration: number;
+  starts_at: string;
+  expired: boolean;
+  cancelled: boolean;
+}
