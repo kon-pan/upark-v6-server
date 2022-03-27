@@ -41,6 +41,19 @@ CREATE TABLE inspectors (
 
 /* -------------------------------------------------------------------------- */
 
+CREATE TABLE vehicles (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  license_plate VARCHAR(10) NOT NULL,
+  driver_id INT,
+  CONSTRAINT fk_driver
+    FOREIGN KEY(driver_id) 
+      REFERENCES drivers(id)
+      ON DELETE CASCADE
+)
+
+/* -------------------------------------------------------------------------- */
+
 CREATE TABLE addresses (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
