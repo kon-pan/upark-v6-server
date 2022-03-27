@@ -10,6 +10,16 @@ export interface IPostgresDriver {
   accumulated_time: number;
 }
 
+export interface IPostgresAdmin {
+  id: number;
+  first_name?: string | null;
+  last_name?: string | null;
+  display_name: string;
+  email: string;
+  password: string;
+  password_changed: boolean;
+}
+
 export interface IPostgresAddress {
   id: number;
   name: string;

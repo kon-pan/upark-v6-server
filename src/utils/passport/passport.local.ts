@@ -4,9 +4,10 @@ import bcrypt from 'bcryptjs';
 
 // Models imports
 import Driver from '../../models/Driver';
+import Admin from '../../models/Admin';
 
 // Interfaces imports
-import { IPostgresDriver } from 'src/interfaces/interface.db';
+import { IPostgresAdmin, IPostgresDriver } from 'src/interfaces/interface.db';
 
 import { isObjectEmpty } from '../utils';
 /* -------------------------------------------------------------------------- */
@@ -25,8 +26,13 @@ const localAuth = new LocalStrategy(
         username
       );
 
+      let admin: IPostgresAdmin & { role?: string } = await Admin.findOne(
+        'email',
+        username
+      );
+
       // Check if the returned user or admin object is empty
-      if (isObjectEmpty(user)) {
+      if (isObjectEmpty(user) && isObjectEmpty(admin)) {
         // Email doesn't match any database entry in either users or admins table
 
         return done(null, false);
@@ -34,7 +40,7 @@ const localAuth = new LocalStrategy(
         // Email matched a database entry
 
         if (!isObjectEmpty(user)) {
-          // Email matches a user
+          // Email matches a driver
           // Compare provided password with stored password
           const match = await bcrypt.compare(password, user.password); // true/false
 
@@ -45,6 +51,34 @@ const localAuth = new LocalStrategy(
           // Add user role before serialization
           user['role'] = 'driver';
           return done(null, user);
+        }
+
+        if (!isObjectEmpty(admin)) {
+          // Email matches an admin
+          // Compare provided password with stored password
+
+          if (admin.password_changed) {
+            // if admin has changed the initial password then the password value
+            // is a hash. Use bcrypt
+
+            const match = await bcrypt.compare(password, admin.password); // true/false
+
+            if (!match) {
+              return done(null, false);
+            }
+          } else {
+            // if admin has not changed the initial password then the password value
+            // is simple text. Compare strings
+            const match = password === admin.password; // true/false
+
+            if (!match) {
+              return done(null, false);
+            }
+          }
+
+          // Add user role before serialization
+          admin['role'] = 'admin';
+          return done(null, admin);
         }
       }
     } catch (error) {

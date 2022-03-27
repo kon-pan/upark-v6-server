@@ -16,6 +16,31 @@ CREATE TABLE drivers (
 
 /* -------------------------------------------------------------------------- */
 
+CREATE TABLE admins (
+  id SERIAL PRIMARY KEY,
+  first_name VARCHAR(50),
+  last_name VARCHAR(50),
+  display_name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  password_changed BOOLEAN NOT NULL
+)
+
+INSERT INTO admins(first_name, last_name, display_name, email, password, password_changed) VALUES('Konstantinos', 'Panos', 'Konstantinos Panos', 'kpanos@upark.com', 'kp1234', false)
+/* -------------------------------------------------------------------------- */
+
+CREATE TABLE inspectors (
+  id SERIAL PRIMARY KEY,
+  first_name VARCHAR(50),
+  last_name VARCHAR(50),
+  display_name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  password_changed BOOLEAN NOT NULL
+)
+
+/* -------------------------------------------------------------------------- */
+
 CREATE TABLE addresses (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,

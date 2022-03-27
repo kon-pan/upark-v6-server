@@ -23,8 +23,10 @@ import { driverMainRouter } from './routers/driver/driver.router';
 
 import db from './db/db.config';
 import localAuth from './utils/passport/passport.local';
-import { IPostgresDriver } from './interfaces/interface.db';
+import { IPostgresAdmin, IPostgresDriver } from './interfaces/interface.db';
 import Driver from './models/Driver';
+import { adminAuthRouter } from './routers/admin/auth.router';
+import Admin from './models/Admin';
 
 /* -------------------------------------------------------------------------- */
 /*                                 CRON TASKS                                 */
@@ -157,8 +159,9 @@ passport.use(localAuth);
 
 passport.serializeUser(
   (
-    user: IPostgresDriver & { role: string },
-    // | (IPostgresAdmin & { role: string })
+    user:
+      | (IPostgresDriver & { role: string })
+      | (IPostgresAdmin & { role: string }),
     // | (IPostgresInspector & { role: string }),
     done: any
   ) => {
@@ -184,21 +187,21 @@ passport.deserializeUser(
       }
     }
 
-    // Admin
-    // if (serializedUser.role === 'admin') {
-    //   try {
-    //     const admin = await Admin.findOne('id', serializedUser.id);
+    Admin;
+    if (serializedUser.role === 'admin') {
+      try {
+        const admin = await Admin.findOne('id', serializedUser.id);
 
-    //     let { password, ...sanitizedUser }: any = admin;
+        let { password, ...sanitizedUser }: any = admin;
 
-    //     // Add role field
-    //     sanitizedUser['role'] = serializedUser.role;
+        // Add role field
+        sanitizedUser['role'] = serializedUser.role;
 
-    //     done(null, sanitizedUser);
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // }
+        done(null, sanitizedUser);
+      } catch (error) {
+        console.log(error);
+      }
+    }
 
     // Inspector
     // if (serializedUser.role === 'inspector') {
@@ -223,6 +226,8 @@ passport.deserializeUser(
 /* -------------------------------------------------------------------------- */
 app.use('/driver', driverMainRouter);
 app.use('/driver/auth', driverAuthRouter);
+// app.use('/driver', driverMainRouter);
+app.use('/admin/auth', adminAuthRouter);
 
 io.on('connection', (socket) => {
   socket.emit(
