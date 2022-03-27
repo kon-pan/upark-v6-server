@@ -30,7 +30,8 @@
     "dev": "nodemon --delay 1000ms -r dotenv/config --exec ts-node src/index.ts"
   },
   "engines": {
-    "node": "16.x"
+    "node": "16.x",
+    "npm": "8.x"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
