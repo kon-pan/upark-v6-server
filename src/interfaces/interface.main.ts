@@ -24,3 +24,14 @@ export interface IInactiveCard {
   expired: boolean;
   cancelled: boolean;
 }
+
+export interface IDriver {
+  id: number;
+  firstName?: string;
+  lastName?: string;
+  displayName: string;
+  email: string;
+  registeredOn: string;
+  registeredWith: string;
+  accumulatedTime: number;
+}

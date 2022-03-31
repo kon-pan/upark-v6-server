@@ -14,10 +14,21 @@ export default class Address {
     }
   }
 
-  /**
-   * Check if provided adress has avaible parking spots
-   * @param {number} addressId
-   * @returns {Promise<any>}
-   */
-  static async hasAvailable(addressId: number): Promise<any> {}
+  static async count(type: 'all'): Promise<number> {
+    switch (type) {
+      case 'all':
+        try {
+          const result = await db.query(`
+        SELECT COUNT(*) FROM addresses
+        `);
+
+          return result.rows[0].count;
+        } catch (error) {
+          throw error;
+        }
+
+      default:
+        break;
+    }
+  }
 }

@@ -1,5 +1,6 @@
 // Interfaces imports
 import { IPostgresDriver } from 'src/interfaces/interface.db';
+import { IDriver } from 'src/interfaces/interface.main';
 
 import db from '../db/db.config';
 /* -------------------------------------------------------------------------- */
@@ -49,6 +50,37 @@ export default class Driver {
 
       default:
         break;
+    }
+  }
+
+  static async findAll(): Promise<IDriver[]> {
+    try {
+      const result = await db.query('SELECT * FROM drivers');
+
+      if (result.rowCount === 0) {
+        return [] as IDriver[];
+      }
+
+      const rows: IPostgresDriver[] = result.rows;
+
+      let data: IDriver[] = [];
+
+      rows.forEach((row) => {
+        data.push({
+          id: row.id,
+          firstName: row.first_name,
+          lastName: row.last_name,
+          displayName: row.display_name,
+          email: row.email,
+          registeredOn: row.registered_on,
+          registeredWith: row.registered_with,
+          accumulatedTime: row.accumulated_time,
+        });
+      });
+
+      return data;
+    } catch (error) {
+      console.log(error);
     }
   }
 
@@ -166,6 +198,24 @@ export default class Driver {
       }
     } catch (error) {
       console.log(error);
+    }
+  }
+
+  static async count(type: 'all'): Promise<number> {
+    switch (type) {
+      case 'all':
+        try {
+          const result = await db.query(`
+          SELECT COUNT(*) FROM drivers
+          `);
+
+          return result.rows[0].count;
+        } catch (error) {
+          throw error;
+        }
+
+      default:
+        break;
     }
   }
 }

@@ -214,3 +214,14 @@ export const updatePassword = async (req: Request, res: Response) => {
 
   res.send({ success: result });
 };
+
+export const getAllDrivers = async (req: Request, res: Response) => {
+  const drivers = await Driver.findAll();
+  res.send(drivers);
+};
+
+export const getDriversCount = async (req: Request, res: Response) => {
+  const driversCount = await Driver.count('all');
+
+  res.send({ driversCount });
+};

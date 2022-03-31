@@ -14,19 +14,20 @@ import * as addressController from './controllers/address/address.controller';
 
 // Models imports
 import Address from './models/Address';
+import Driver from './models/Driver';
+import Admin from './models/Admin';
 
 // Routers imports
 import { driverAuthRouter } from './routers/driver/auth.router';
 import { driverMainRouter } from './routers/driver/driver.router';
+import { adminAuthRouter } from './routers/admin/auth.router';
+import { adminMainRouter } from './routers/admin/admin.router';
 
 // Interfaces imports
+import { IPostgresAdmin, IPostgresDriver } from './interfaces/interface.db';
 
 import db from './db/db.config';
 import localAuth from './utils/passport/passport.local';
-import { IPostgresAdmin, IPostgresDriver } from './interfaces/interface.db';
-import Driver from './models/Driver';
-import { adminAuthRouter } from './routers/admin/auth.router';
-import Admin from './models/Admin';
 
 /* -------------------------------------------------------------------------- */
 /*                                 CRON TASKS                                 */
@@ -226,7 +227,7 @@ passport.deserializeUser(
 /* -------------------------------------------------------------------------- */
 app.use('/driver', driverMainRouter);
 app.use('/driver/auth', driverAuthRouter);
-// app.use('/driver', driverMainRouter);
+app.use('/admin', adminMainRouter);
 app.use('/admin/auth', adminAuthRouter);
 
 io.on('connection', (socket) => {
