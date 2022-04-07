@@ -36,6 +36,38 @@ export default class History {
     }
   }
 
+  //  Earnings last 4 weeks
+  // SELECT
+  //   *
+  // FROM
+  //   (
+  //     SELECT
+  //       date_trunc(
+  //         'week', inactive_cards.starts_at
+  //       ) as week,
+  //       SUM(cost)
+  //     FROM
+  //       inactive_cards
+  //     GROUP BY
+  //       week
+  //     ORDER BY
+  //       week DESC
+  //     LIMIT
+  //       3
+  //   ) as t1
+  // UNION
+  //   (
+  //     SELECT
+  //       date_trunc('week', active_cards.starts_at) as week,
+  //       SUM(cost)
+  //     FROM
+  //       active_cards
+  //     GROUP BY
+  //       week
+  //     LIMIT
+  //       1
+  //   )
+
   static async getCardsDistributionToday(): Promise<{
     active: number;
     expired: number;

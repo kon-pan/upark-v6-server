@@ -85,7 +85,10 @@ export default class Card {
         ) 
         VALUES 
           ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
-      ) 
+      ), payment AS (
+      INSERT INTO earnings(amount, datetime) 
+        SELECT t.cost, $9 FROM (SELECT cost FROM new_card) t
+      )
       UPDATE 
         addresses 
       SET 
@@ -102,6 +105,7 @@ export default class Card {
         expireUtc.toISO(),
         card.driverId,
         card.addressId,
+        DateTime.now().toUTC().toISO(),
       ];
     }
 
@@ -330,15 +334,20 @@ export default class Card {
       data = [dt.toUTC().toISO(), cardId, duration];
     } else {
       sql = `
-      UPDATE 
-        active_cards 
-      SET 
-        expires_at = $1, 
-        cost = cost + $2 
-      WHERE 
-        id = $3
+      WITH extension AS (
+        UPDATE 
+          active_cards 
+        SET 
+          expires_at = $1, 
+          cost = cost + $2 
+        WHERE 
+          id = $3 RETURNING *
+      )
+      INSERT INTO earnings(amount, datetime) VALUES ($4, $5)
+        
+
       `;
-      data = [dt.toUTC().toISO(), price, cardId];
+      data = [dt.toUTC().toISO(), price, cardId, price, DateTime.now().toUTC().toISO()];
     }
 
     try {

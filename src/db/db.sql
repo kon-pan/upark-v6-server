@@ -120,6 +120,14 @@ CREATE TABLE inactive_cards (
 
 /* -------------------------------------------------------------------------- */
 
+CREATE TABLE earnings (
+  id SERIAL PRIMARY KEY,
+  amount NUMERIC NOT NULL,
+  datetime TIMESTAMPTZ NOT NULL
+);
+
+/* -------------------------------------------------------------------------- */
+
 WITH new_card AS (
   INSERT INTO active_cards(
     license_plate, vehicle_name, duration, 
