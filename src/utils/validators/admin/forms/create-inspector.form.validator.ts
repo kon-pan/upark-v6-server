@@ -1,9 +1,8 @@
 import { check } from 'express-validator';
+import Inspector from '../../../../models/Inspector';
 import { isObjectEmpty } from '../../../utils';
 
-import Driver from '../../../../models/Driver';
-
-const registerValidator = [
+const createInspectorValidator = [
   check('firstName')
     .trim()
     .stripLow()
@@ -39,7 +38,7 @@ const registerValidator = [
     .bail()
     .custom((value) => {
       return new Promise(async (resolve, reject) => {
-        const driver = await Driver.findOne('email', value);
+        const driver = await Inspector.findOne('email', value);
         if (isObjectEmpty(driver)) {
           resolve(true);
         } else {
@@ -64,16 +63,6 @@ const registerValidator = [
       'Ο κωδικός σας πρέπει να περιέχει τουλάχιστον 1 κεφαλαίο γράμμα, 1 μικρό γράμμα, 1 αριθμό και 1 ειδικό χαρακτήρα.'
     )
     .bail(),
-  check('passwordConfirm')
-    .custom((value, { req }) => {
-      if (value !== req.body.password) {
-        throw new Error();
-      }
-      return true;
-    })
-    .withMessage(
-      'Η τιμή που εισάγατε δεν αντιστοιχεί με τον κωδικό ασφαλείας.'
-    ),
 ];
 
-export default registerValidator;
+export default createInspectorValidator;

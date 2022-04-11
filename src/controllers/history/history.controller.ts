@@ -13,3 +13,22 @@ export const getCardsDistributionToday = async (
   const distribution = await History.getCardsDistributionToday();
   res.send({ distribution });
 };
+
+export const getEarningsLastSevenDays = async (req: Request, res: Response) => {
+  const earningsLastSevenDays = await History.getEarningsLastSevenDays();
+
+  res.send(earningsLastSevenDays.reverse());
+};
+
+export const getEarningsLastFourWeeks = async (req: Request, res: Response) => {
+  const earningsLastFourWeeks = await History.getEarningsLastFourWeeks();
+
+  res.send(earningsLastFourWeeks.reverse());
+};
+
+export const getEarningsLastSixMonths = async (req: Request, res: Response) => {
+  const earningsLastSixMonths = await History.getEarningsLastSixMonths();
+
+  res.send(earningsLastSixMonths.reverse());
+  // res.send('Under development');
+};
