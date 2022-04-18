@@ -347,11 +347,36 @@ export default class Card {
         
 
       `;
-      data = [dt.toUTC().toISO(), price, cardId, price, DateTime.now().toUTC().toISO()];
+      data = [
+        dt.toUTC().toISO(),
+        price,
+        cardId,
+        price,
+        DateTime.now().toUTC().toISO(),
+      ];
     }
 
     try {
       const result = await db.query(sql, data);
+
+      if (result.rowCount > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  static async inspect(licensePlate: string): Promise<boolean> {
+    try {
+      const result = await db.query(
+        `
+      SELECT * FROM active_cards WHERE license_plate=$1 
+      `,
+        [licensePlate]
+      );
 
       if (result.rowCount > 0) {
         return true;

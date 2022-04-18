@@ -1,6 +1,6 @@
 import { IPostgresInspector } from '../interfaces/interface.db';
 import db from '../db/db.config';
-import { IInspector } from 'src/interfaces/interface.main';
+import { IInspector } from '../interfaces/interface.main';
 
 export default class Inspector {
   static async findOne(
@@ -109,6 +109,30 @@ export default class Inspector {
       });
 
       return data;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  static async updatePassword(inspectorId: number, password: string) {
+    try {
+      const result = await db.query(
+        `
+      UPDATE 
+        inspectors 
+      SET 
+        password = $1
+      WHERE 
+        id = $2
+      `,
+        [password, inspectorId]
+      );
+
+      if (result.rowCount > 0) {
+        return true;
+      } else {
+        return false;
+      }
     } catch (error) {
       console.log(error);
     }

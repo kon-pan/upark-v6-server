@@ -349,4 +349,168 @@ export default class History {
       throw error;
     }
   }
+
+  static async getDriversLastSevenDays(): Promise<
+    | {
+        dt: DateTime;
+        count: number;
+      }[]
+    | any
+  > {
+    const today = DateTime.now();
+    let lastSevenDays = [];
+
+    for (let count = 0; count < 7; count++) {
+      count === 0
+        ? lastSevenDays.push({ dt: today, count: 0 })
+        : lastSevenDays.push({ dt: today.minus({ days: count }), count: 0 });
+    }
+
+    try {
+      const result = await db.query(`
+      SELECT 
+        date_trunc(
+          'day', drivers.registered_on
+        ) as day, 
+        COUNT(*) 
+      FROM 
+        drivers 
+      WHERE 
+        registered_on > now() - interval '7' day 
+      GROUP BY 
+        day
+      `);
+
+      let resultData: any = [];
+      if (result.rowCount > 0) {
+        result.rows.forEach((row) => {
+          resultData.push({
+            dt: DateTime.fromJSDate(row.day),
+            count: row.count,
+          });
+        });
+      }
+
+      let index = 0;
+      for (const el of lastSevenDays) {
+        for (const row of resultData) {
+          if (
+            el.dt.day === row.dt.day &&
+            el.dt.month === row.dt.month &&
+            el.dt.year === row.dt.year
+          ) {
+            lastSevenDays[index].count = row.count;
+          }
+        }
+        index = index + 1;
+      }
+
+      return lastSevenDays;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  static async getDriversLastFourWeeks() {
+    const dt = DateTime.now();
+
+    // Initialize data
+    const lastFourWeeks = [
+      {
+        dt: dt.startOf('week'),
+        count: 0,
+      },
+      {
+        dt: dt.minus({ weeks: 1 }).startOf('week'),
+        count: 0,
+      },
+      {
+        dt: dt.minus({ weeks: 2 }).startOf('week'),
+        count: 0,
+      },
+      {
+        dt: dt.minus({ weeks: 3 }).startOf('week'),
+        count: 0,
+      },
+    ];
+
+    try {
+      const result = await db.query(`
+      SELECT date_trunc('week', drivers.registered_on) as week, COUNT(*)
+      FROM drivers
+      GROUP BY week
+      ORDER BY week DESC
+      LIMIT 4
+      `);
+
+      let resultData: any = [];
+      if (result.rowCount > 0) {
+        result.rows.forEach((row) => {
+          resultData.push({
+            dt: DateTime.fromJSDate(row.week),
+            count: row.sum,
+          });
+        });
+      }
+
+      let index = 0;
+      for (const el of lastFourWeeks) {
+        for (const row of resultData) {
+          if (
+            el.dt.day === row.dt.day &&
+            el.dt.month === row.dt.month &&
+            el.dt.year === row.dt.year
+          ) {
+            lastFourWeeks[index].count = row.count;
+          }
+        }
+        index = index + 1;
+      }
+
+      return [
+        {
+          range: `${dt.startOf('week').toLocaleString()}-${dt
+            .startOf('week')
+            .endOf('week')
+            .toLocaleString()}`,
+          count: lastFourWeeks[0].count,
+        },
+        {
+          range: `${dt
+            .minus({ weeks: 1 })
+            .startOf('week')
+            .toLocaleString()}-${dt
+            .minus({ weeks: 1 })
+            .startOf('week')
+            .endOf('week')
+            .toLocaleString()}`,
+          count: lastFourWeeks[1].count,
+        },
+        {
+          range: `${dt
+            .minus({ weeks: 2 })
+            .startOf('week')
+            .toLocaleString()}-${dt
+            .minus({ weeks: 2 })
+            .startOf('week')
+            .endOf('week')
+            .toLocaleString()}`,
+          count: lastFourWeeks[2].count,
+        },
+        {
+          range: `${dt
+            .minus({ weeks: 3 })
+            .startOf('week')
+            .toLocaleString()}-${dt
+            .minus({ weeks: 3 })
+            .startOf('week')
+            .endOf('week')
+            .toLocaleString()}`,
+          count: lastFourWeeks[3].count,
+        },
+      ];
+    } catch (error) {
+      throw error;
+    }
+  }
 }

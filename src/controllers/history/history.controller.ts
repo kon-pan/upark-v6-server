@@ -30,5 +30,16 @@ export const getEarningsLastSixMonths = async (req: Request, res: Response) => {
   const earningsLastSixMonths = await History.getEarningsLastSixMonths();
 
   res.send(earningsLastSixMonths.reverse());
-  // res.send('Under development');
+};
+
+export const getDriversLastSevenDays = async (req: Request, res: Response) => {
+  const driversLastSevenDays = await History.getDriversLastSevenDays();
+
+  res.send(driversLastSevenDays.reverse());
+};
+
+export const getDriversLastFourWeeks = async (req: Request, res: Response) => {
+  const driversLastFourWeeks = await History.getDriversLastFourWeeks();
+
+  res.send(driversLastFourWeeks.reverse());
 };

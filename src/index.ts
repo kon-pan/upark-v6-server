@@ -16,15 +16,22 @@ import * as addressController from './controllers/address/address.controller';
 import Address from './models/Address';
 import Driver from './models/Driver';
 import Admin from './models/Admin';
+import Inspector from './models/Inspector';
 
 // Routers imports
 import { driverAuthRouter } from './routers/driver/auth.router';
 import { driverMainRouter } from './routers/driver/driver.router';
 import { adminAuthRouter } from './routers/admin/auth.router';
 import { adminMainRouter } from './routers/admin/admin.router';
+import { inspectorAuthRouter } from './routers/inspector/auth.router';
+import { inspectorMainRouter } from './routers/inspector/inspector.router';
 
 // Interfaces imports
-import { IPostgresAdmin, IPostgresDriver } from './interfaces/interface.db';
+import {
+  IPostgresAdmin,
+  IPostgresDriver,
+  IPostgresInspector,
+} from './interfaces/interface.db';
 
 import db from './db/db.config';
 import localAuth from './utils/passport/passport.local';
@@ -162,8 +169,8 @@ passport.serializeUser(
   (
     user:
       | (IPostgresDriver & { role: string })
-      | (IPostgresAdmin & { role: string }),
-    // | (IPostgresInspector & { role: string }),
+      | (IPostgresAdmin & { role: string })
+      | (IPostgresInspector & { role: string }),
     done: any
   ) => {
     done(null, { id: user.id, role: user.role });
@@ -188,7 +195,7 @@ passport.deserializeUser(
       }
     }
 
-    Admin;
+    // Admin
     if (serializedUser.role === 'admin') {
       try {
         const admin = await Admin.findOne('id', serializedUser.id);
@@ -205,20 +212,20 @@ passport.deserializeUser(
     }
 
     // Inspector
-    // if (serializedUser.role === 'inspector') {
-    //   try {
-    //     const inspector = await Inspector.findOne('id', serializedUser.id);
+    if (serializedUser.role === 'inspector') {
+      try {
+        const inspector = await Inspector.findOne('id', serializedUser.id);
 
-    //     let { password, ...sanitizedUser }: any = inspector;
+        let { password, ...sanitizedUser }: any = inspector;
 
-    //     // Add role field
-    //     sanitizedUser['role'] = serializedUser.role;
+        // Add role field
+        sanitizedUser['role'] = serializedUser.role;
 
-    //     done(null, sanitizedUser);
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // }
+        done(null, sanitizedUser);
+      } catch (error) {
+        console.log(error);
+      }
+    }
   }
 );
 
@@ -229,6 +236,8 @@ app.use('/driver', driverMainRouter);
 app.use('/driver/auth', driverAuthRouter);
 app.use('/admin', adminMainRouter);
 app.use('/admin/auth', adminAuthRouter);
+app.use('/inspector', inspectorMainRouter);
+app.use('/inspector/auth', inspectorAuthRouter);
 
 io.on('connection', (socket) => {
   socket.emit(

@@ -5,9 +5,14 @@ import bcrypt from 'bcryptjs';
 // Models imports
 import Driver from '../../models/Driver';
 import Admin from '../../models/Admin';
+import Inspector from '../../models/Inspector';
 
 // Interfaces imports
-import { IPostgresAdmin, IPostgresDriver } from 'src/interfaces/interface.db';
+import {
+  IPostgresAdmin,
+  IPostgresDriver,
+  IPostgresInspector,
+} from 'src/interfaces/interface.db';
 
 import { isObjectEmpty } from '../utils';
 /* -------------------------------------------------------------------------- */
@@ -26,13 +31,22 @@ const localAuth = new LocalStrategy(
         username
       );
 
+      let inspector: IPostgresInspector & { role?: string } =
+        await Inspector.findOne('email', username);
+
       let admin: IPostgresAdmin & { role?: string } = await Admin.findOne(
         'email',
         username
       );
 
+      console.log(inspector);
+
       // Check if the returned user or admin object is empty
-      if (isObjectEmpty(user) && isObjectEmpty(admin)) {
+      if (
+        isObjectEmpty(user) &&
+        isObjectEmpty(admin) &&
+        isObjectEmpty(inspector)
+      ) {
         // Email doesn't match any database entry in either users or admins table
 
         return done(null, false);
@@ -79,6 +93,20 @@ const localAuth = new LocalStrategy(
           // Add user role before serialization
           admin['role'] = 'admin';
           return done(null, admin);
+        }
+
+        if (!isObjectEmpty(inspector)) {
+          // Email matches an inspector
+          // Compare provided password with stored password
+          const match = await bcrypt.compare(password, inspector.password); // true/false
+
+          if (!match) {
+            return done(null, false);
+          }
+
+          // Add user role before serialization
+          inspector['role'] = 'inspector';
+          return done(null, inspector);
         }
       }
     } catch (error) {

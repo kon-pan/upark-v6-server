@@ -33,6 +33,14 @@ router.get(
   historyController.getEarningsLastSixMonths
 );
 router.get(
+  '/get/drivers/last-seven-days',
+  historyController.getDriversLastSevenDays
+);
+router.get(
+  '/get/drivers/last-four-weeks',
+  historyController.getDriversLastFourWeeks
+);
+router.get(
   '/get/cards-distribution/today',
   historyController.getCardsDistributionToday
 );
