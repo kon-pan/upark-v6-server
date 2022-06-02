@@ -14,6 +14,34 @@ export default class Address {
     }
   }
 
+  static async findOne(
+    col: string,
+    value: string | number
+  ): Promise<IPostgresAddress> {
+    switch (col) {
+      case 'id':
+        try {
+          const result = await db.query('SELECT * FROM addresses WHERE id=$1', [
+            value,
+          ]);
+
+          if (result.rowCount === 0) {
+            return {} as IPostgresAddress; // user id does not exist
+          }
+
+          const row: IPostgresAddress = result.rows[0];
+          return row;
+        } catch (error) {
+          console.log(error);
+        }
+
+        break;
+
+      default:
+        break;
+    }
+  }
+
   static async count(type: 'all'): Promise<number> {
     switch (type) {
       case 'all':

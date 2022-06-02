@@ -7,6 +7,7 @@ import * as driverController from '../../controllers/driver/driver.controller';
 import * as vehicleController from '../../controllers/vehicle/vehicle.controller';
 import * as cardController from '../../controllers/card/card.controller';
 import * as stripeController from '../../controllers/stripe/stripe.controller';
+import * as addressController from '../../controllers/address/address.controller';
 
 // Validators imports
 import registerValidator from '../../utils/validators/driver/forms/register.form.validator';
@@ -20,6 +21,7 @@ const router = express.Router();
 /* -------------------------------------------------------------------------- */
 /*                                 GET ROUTES                                 */
 /* -------------------------------------------------------------------------- */
+router.get('/address/:addressId', addressController.getAddress)
 // Remove a driver's saved vehicle
 router.get('/delete/vehicle/:vehicleId', vehicleController.deleteVehicle);
 // Fetch inactive card/s (if any) of a specific driver
